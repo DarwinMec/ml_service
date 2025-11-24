@@ -195,7 +195,7 @@ def main():
                         version,
                         mae,
                         rmse,
-                        accuracy,
+                        r2,
                         parameters,
                         trained_at,
                         created_at,
@@ -209,7 +209,7 @@ def main():
                         %s,  -- version
                         %s,  -- mae (numeric(10,4))
                         %s,  -- rmse (numeric(10,4))
-                        %s,  -- accuracy (numeric(5,4))
+                        %s,  -- r2 (numeric(5,4))
                         %s::jsonb, -- parameters
                         %s,  -- trained_at
                         %s,  -- created_at

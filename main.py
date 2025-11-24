@@ -348,7 +348,7 @@ def get_active_model_info():
                 text("""
                     SELECT 
                         id, model_name, model_type, version,
-                        mae, rmse, accuracy, trained_at, created_at
+                        mae, rmse, r2, trained_at, created_at
                     FROM ml_models
                     WHERE id = :model_id
                 """),
@@ -366,7 +366,7 @@ def get_active_model_info():
             "version": row[3],
             "mae": float(row[4]) if row[4] else None,
             "rmse": float(row[5]) if row[5] else None,
-            "accuracy": float(row[6]) if row[6] else None,
+            "r2": float(row[6]) if row[6] else None,
             "trained_at": str(row[7]),
             "created_at": str(row[8])
         }
