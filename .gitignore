@@ -1,0 +1,32 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Variables de entorno
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+artifacts/logs/*
+!artifacts/logs/.gitkeep
+
+# Modelos y métricas generadas
+artifacts/models/*
+artifacts/metrics/*
+!artifacts/models/.gitkeep
+!artifacts/metrics/.gitkeep
+
+# Sistema / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
