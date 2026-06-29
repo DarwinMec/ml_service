@@ -10,6 +10,14 @@ class TrainRequest(BaseModel):
     register_in_db: bool = Field(default=True, description="Registrar modelo en PostgreSQL")
     created_by: str = Field(default="admin", description="Username, email o UUID del usuario")
 
+    # Si viene null, el servicio usa ML_TRAIN_MODE.
+    # Si viene true, fuerza async.
+    # Si viene false, fuerza sync.
+    async_mode: Optional[bool] = Field(
+        default=None,
+        description="Forzar entrenamiento asíncrono o síncrono. Si es null, usa ML_TRAIN_MODE.",
+    )
+
 
 class PredictRequest(BaseModel):
     weeks_ahead: int = Field(default=4, ge=1, le=12)

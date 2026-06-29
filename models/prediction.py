@@ -14,6 +14,7 @@ from features.feature_pipeline import prepare_feature_dataset
 from features.temporal_features import add_temporal_features
 from features.lag_features import add_lag_and_rolling_features
 from models.registry import resolve_user_id
+from storage.s3_artifacts import resolve_artifact_to_local_path
 from models.xgboost_model import clip_negative_predictions
 
 
@@ -66,6 +67,9 @@ def get_active_model_record(model_name: str = MODEL_NAME) -> Dict[str, Any]:
 def load_active_model_artifact(model_name: str = MODEL_NAME) -> Dict[str, Any]:
     """
     Carga el artifact .joblib del modelo activo.
+
+    Soporta artifact_path local y artifact_path con formato s3://...
+    Para S3, el archivo se descarga temporalmente a cache local antes de joblib.load().
     """
     model_record = get_active_model_record(model_name=model_name)
     parameters = model_record.get("parameters") or {}
@@ -75,7 +79,7 @@ def load_active_model_artifact(model_name: str = MODEL_NAME) -> Dict[str, Any]:
     if not artifact_path:
         raise ValueError("El modelo activo no tiene artifact_path en parameters")
 
-    path = Path(artifact_path)
+    path = resolve_artifact_to_local_path(artifact_path)
 
     if not path.exists():
         raise FileNotFoundError(f"No se encontró el archivo del modelo: {path}")

@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """
     Configuración central del microservicio ML.
-    Lee variables desde el archivo .env.
+    Lee variables desde el archivo .env y desde variables de entorno.
     """
 
     model_config = SettingsConfigDict(
@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     # Database
     ml_db_url: str = Field(
         default="postgresql+psycopg2://postgres:1234@localhost:5432/db_TP1test2",
-        alias="ML_DB_URL"
-)
+        alias="ML_DB_URL",
+    )
+
     # Backend Spring Boot
     backend_api_url: str = Field(
         default="http://localhost:8080/api",
@@ -39,6 +40,24 @@ class Settings(BaseSettings):
     models_dir: str = Field(default="artifacts/models", alias="ML_MODELS_DIR")
     metrics_dir: str = Field(default="artifacts/metrics", alias="ML_METRICS_DIR")
     logs_dir: str = Field(default="artifacts/logs", alias="ML_LOGS_DIR")
+
+    # Storage backend
+    # local: mantiene rutas locales en parameters.artifact_path
+    # s3: sube modelos/métricas a S3 y guarda rutas s3://... en PostgreSQL
+    storage_backend: str = Field(default="local", alias="ML_STORAGE_BACKEND")
+
+    # S3 artifacts
+    s3_bucket: Optional[str] = Field(default=None, alias="ML_S3_BUCKET")
+    s3_models_prefix: str = Field(default="models", alias="ML_S3_MODELS_PREFIX")
+    s3_metrics_prefix: str = Field(default="metrics", alias="ML_S3_METRICS_PREFIX")
+    aws_region: str = Field(default="us-east-2", alias="AWS_REGION")
+
+    # Training execution mode
+    # sync: /ml/train espera hasta terminar.
+    # async: /ml/train responde rápido y entrena en segundo plano.
+    # En App Runner se recomienda async para evitar timeouts HTTP.
+    train_mode: str = Field(default="sync", alias="ML_TRAIN_MODE")
+    max_async_training_jobs: int = Field(default=1, alias="ML_MAX_ASYNC_TRAINING_JOBS")
 
     # Training config
     random_seed: int = Field(default=42, alias="RANDOM_SEED")

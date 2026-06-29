@@ -11,6 +11,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from data.database import get_engine
+from storage.s3_artifacts import upload_local_file_to_s3
 
 
 def make_model_version(prefix: str = "xgb") -> str:
@@ -26,36 +27,58 @@ def save_model_artifact(
     artifact: Dict[str, Any],
     version: str,
     model_name: str = "xgboost_demand_forecasting",
-) -> Path:
+) -> str:
     """
     Guarda el artefacto del modelo en formato .joblib.
+
+    Modo local:
+    - Guarda en artifacts/models y retorna una ruta local.
+
+    Modo S3:
+    - Guarda temporalmente en artifacts/models.
+    - Sube el archivo a S3.
+    - Retorna una ruta s3://bucket/models/modelo.joblib.
     """
     settings = get_settings()
     settings.ensure_directories()
 
     filename = f"{model_name}_{version}.joblib"
-    output_path = settings.models_path / filename
+    local_path = settings.models_path / filename
 
-    joblib.dump(artifact, output_path)
+    joblib.dump(artifact, local_path)
 
-    return output_path
+    if settings.storage_backend.lower() == "s3":
+        return upload_local_file_to_s3(
+            local_path=local_path,
+            prefix=settings.s3_models_prefix,
+        )
+
+    return str(local_path)
 
 
 def save_metrics_json(
     metrics_payload: Dict[str, Any],
     version: str,
     model_name: str = "xgboost_demand_forecasting",
-) -> Path:
+) -> str:
     """
     Guarda métricas y metadata del entrenamiento en un archivo JSON.
+
+    Modo local:
+    - Guarda en artifacts/metrics y retorna una ruta local.
+
+    Modo S3:
+    - Guarda temporalmente en artifacts/metrics.
+    - Sube el archivo a S3.
+    - Retorna una ruta s3://bucket/metrics/archivo.json.
     """
     settings = get_settings()
     settings.ensure_directories()
 
     filename = f"{model_name}_{version}_metrics.json"
-    output_path = settings.metrics_path / filename
+    local_path = settings.metrics_path / filename
 
-    with open(output_path, "w", encoding="utf-8") as file:
+    with open(local_path, "w", encoding="utf-8") as file:
         json.dump(
             to_json_safe(metrics_payload),
             file,
@@ -63,7 +86,13 @@ def save_metrics_json(
             indent=4,
         )
 
-    return output_path
+    if settings.storage_backend.lower() == "s3":
+        return upload_local_file_to_s3(
+            local_path=local_path,
+            prefix=settings.s3_metrics_prefix,
+        )
+
+    return str(local_path)
 
 
 def resolve_user_id(created_by: Optional[str]) -> Optional[str]:
